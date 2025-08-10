@@ -9,7 +9,8 @@ import 'feedback_screen.dart';
 import 'crop_report_screen.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
-import 'tips_screen.dart'; // Import the new tips screen
+import 'tips_screen.dart';
+import 'payments_screen.dart'; // Import the new payments screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -80,9 +81,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'My Payments',
                   iconColor: Colors.orange.shade400,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('My Payments (Feature Coming Soon)')),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
                   },
                 ),
                 _HomeActionCard(
