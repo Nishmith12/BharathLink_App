@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -18,29 +17,16 @@ class _SplashScreenState extends State<SplashScreen> {
     _checkAuthStatus();
   }
 
-  _checkAuthStatus() {
-    // Listen to authentication state changes
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (mounted) {
-        if (user == null) {
-          // If user is not logged in, go to onboarding
-          Timer(const Duration(seconds: 2), () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const OnboardingScreen()),
             );
-          });
         } else {
-          // If user is logged in, go to home screen
-          Timer(const Duration(seconds: 2), () {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => HomeScreen()),
             );
-          });
         }
       }
-    });
   }
 
   @override

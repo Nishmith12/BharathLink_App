@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'scan_crop_screen.dart';
 import 'schedule_visit_screen.dart';
 import 'sales_tracking_screen.dart';
@@ -7,7 +6,6 @@ import 'sell_crop_flow_screen.dart';
 import 'kyc_screen.dart';
 import 'feedback_screen.dart';
 import 'crop_report_screen.dart';
-import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -18,15 +16,6 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Welcome to Bharath Link'),
         automaticallyImplyLeading: false, // No back button on home
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            },
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
