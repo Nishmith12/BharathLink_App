@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
+<<<<<<< HEAD
+import 'package:bharathlink_full_demo/screens/splash_screen.dart';
+=======
 import 'package:intl/intl.dart'; // For date formatting
 import 'dart:async'; // For Future.delayed
+>>>>>>> origin/main
 
 void main() {
   runApp(const BharathLinkApp());
@@ -49,6 +53,16 @@ class BharathLinkApp extends StatelessWidget {
         cardTheme: const CardThemeData( // Using CardThemeData
           elevation: 8,
           shape: RoundedRectangleBorder(
+<<<<<<< HEAD
+            borderRadius: BorderRadius.all(Radius.circular(15.0)),
+          ),
+        ),
+      ),
+      home: const SplashScreen(), // Start with the Splash Screen
+    );
+  }
+}
+=======
             borderRadius: const BorderRadius.all(Radius.circular(15.0)), // Const constructor fix
           ),
         ),
@@ -2311,3 +2325,4 @@ Widget _buildInfoTip({required IconData icon, required String text, required Col
     ),
   );
 }
+>>>>>>> origin/main
