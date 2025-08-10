@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "724794500028",
+    "project_id": "bharathlink-app",
+    "storage_bucket": "bharathlink-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:724794500028:android:96f6edd2ab3170b37781b9",
+        "android_client_info": {
+          "package_name": "com.example.bharathlink_full_demo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA1K2XDMXCgFxHPc0oRCyZH4W8ftV9abXs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
