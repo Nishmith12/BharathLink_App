@@ -1,10 +1,73 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+class KycScreen extends StatefulWidget {
+  const KycScreen({super.key});
+
+  @override
+  State<KycScreen> createState() => _KycScreenState();
+}
+
+class _KycScreenState extends State<KycScreen> {
   final aadhaarController = TextEditingController();
   final panController = TextEditingController();
   final bankController = TextEditingController();
   final ifscController = TextEditingController();
+  bool _isLoading = false;
 
+  void _submitKyc() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in to submit KYC.")),
+      );
+      return;
+    }
+
+    if (aadhaarController.text.isEmpty ||
+        panController.text.isEmpty ||
+        bankController.text.isEmpty ||
+        ifscController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please fill all KYC details.")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'aadhaar': aadhaarController.text,
+        'pan': panController.text,
+        'bankAccount': bankController.text,
+        'ifsc': ifscController.text,
+        'kycSubmittedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true)); // Use merge to avoid overwriting other user data
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("KYC details submitted successfully!")),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to submit KYC: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +130,10 @@ import 'package:flutter/material.dart';
                   ),
                 ),
                 const SizedBox(height: 30),
+                _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : ElevatedButton.icon(
+                  onPressed: _submitKyc,
                   icon: const Icon(Icons.check_circle_outline),
                   label: const Text("Submit KYC"),
                 )

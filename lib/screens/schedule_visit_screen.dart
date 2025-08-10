@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/info_tip.dart';
 
 class ScheduleVisitScreen extends StatefulWidget {
@@ -13,6 +15,7 @@ class _ScheduleVisitScreenState extends State<ScheduleVisitScreen> {
   DateTime _selectedDate = DateTime.now();
   String? _selectedTimeSlot;
   final TextEditingController _addressController = TextEditingController();
+  bool _isLoading = false;
 
   final List<String> _timeSlots = [
     '9 AM - 10 AM',
@@ -22,6 +25,57 @@ class _ScheduleVisitScreenState extends State<ScheduleVisitScreen> {
     '2 PM - 3 PM',
     '3 PM - 4 PM',
   ];
+
+  void _confirmVisit() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in to schedule a visit.")),
+      );
+      return;
+    }
+
+    if (_selectedTimeSlot == null || _addressController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select a time slot and enter an address.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('visits').add({
+        'visitorId': user.uid,
+        'visitDate': Timestamp.fromDate(_selectedDate),
+        'timeSlot': _selectedTimeSlot,
+        'address': _addressController.text,
+        'scheduledAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Visit Confirmed for ${DateFormat.yMMMd().format(_selectedDate)} at $_selectedTimeSlot')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to schedule visit: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -207,6 +261,10 @@ class _ScheduleVisitScreenState extends State<ScheduleVisitScreen> {
               iconColor: Colors.orange,
             ),
             const SizedBox(height: 30),
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton.icon(
+              onPressed: _confirmVisit,
               icon: const Icon(Icons.event_available),
               label: const Text('Confirm Visit'),
             ),
