@@ -1,34 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'crop_report_screen.dart'; // Import the crop report screen
+import 'crop_report_screen.dart';
 
-class SalesTrackingScreen extends StatelessWidget {
-  const SalesTrackingScreen({super.key});
+class SearchResultsScreen extends StatelessWidget {
+  final String searchQuery;
+
+  const SearchResultsScreen({super.key, required this.searchQuery});
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Listed Crops'),
+        title: Text('Results for "$searchQuery"'),
       ),
-      body: user == null
-          ? const Center(child: Text("Please log in to see your crops."))
-          : StreamBuilder<QuerySnapshot>(
+      body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('crops')
-            .where('ownerId', isEqualTo: user.uid)
-            .orderBy('listedAt', descending: true)
+            .where('cropName', isGreaterThanOrEqualTo: searchQuery)
+            .where('cropName', isLessThanOrEqualTo: '$searchQuery\uf8ff')
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text("You haven't listed any crops yet."));
+            return Center(child: Text('No crops found for "$searchQuery".'));
           }
           if (snapshot.hasError) {
             return const Center(child: Text("Something went wrong!"));

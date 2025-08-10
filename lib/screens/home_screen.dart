@@ -10,13 +10,17 @@ import 'crop_report_screen.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'tips_screen.dart';
-import 'payments_screen.dart'; // Import the new payments screen
+import 'payments_screen.dart';
+import 'sell_crop_screen.dart';
+import 'search_results_screen.dart'; // Import the new search results screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController searchController = TextEditingController();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Welcome to Bharath Link'),
@@ -38,17 +42,27 @@ class HomeScreen extends StatelessWidget {
           children: [
             // Search Bar
             TextField(
+              controller: searchController,
               decoration: InputDecoration(
-                hintText: 'Search crop, service or help...',
-                prefixIcon: Icon(Icons.search, color: Colors.grey.shade600),
+                hintText: 'Search for a crop...',
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
                 ),
                 filled: true,
                 fillColor: Colors.grey.shade200,
-                contentPadding: const EdgeInsets.symmetric(vertical: 15.0),
               ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SearchResultsScreen(searchQuery: value),
+                    ),
+                  );
+                }
+              },
             ),
             const SizedBox(height: 30),
 
@@ -89,7 +103,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Crop Status',
                   iconColor: Colors.purple.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen())); // Re-using sales tracking for status
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -105,7 +119,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Sell Crop',
                   iconColor: Colors.red.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropFlowScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -129,7 +143,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Crop Report',
                   iconColor: Colors.cyan.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const CropReportScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
                   },
                 ),
               ],

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'crop_report_screen.dart';
 import '../widgets/info_tip.dart';
 
 class ScanCropScreen extends StatelessWidget {
@@ -47,11 +46,14 @@ class ScanCropScreen extends StatelessWidget {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Scanning Crop... (Mock)')),
                 );
-                // In a real app, this would trigger camera.
-                // For now, let's navigate to a mock report screen after a delay.
+                // In a real app, this would trigger camera and process the result.
+                // For now, just show a confirmation.
                 Future.delayed(const Duration(seconds: 2), () {
                   if (context.mounted) {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => CropReportScreen()));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Scan complete! View the report in "Crop Status".')),
+                    );
+                    Navigator.pop(context);
                   }
                 });
               },

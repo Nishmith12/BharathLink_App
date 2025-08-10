@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'scan_crop_screen.dart';
 import 'schedule_visit_screen.dart';
-import 'crop_report_screen.dart';
+import 'sales_tracking_screen.dart'; // Import the sales tracking screen
 import '../widgets/section_header.dart';
 
 class SellCropFlowScreen extends StatelessWidget {
@@ -110,9 +110,10 @@ class SellCropFlowScreen extends StatelessWidget {
               iconColor: Colors.lightGreen,
               title: 'Quality Report',
               description: 'See detailed crop quality metrics',
-              buttonText: 'View Report',
+              buttonText: 'View Reports', // Changed button text
               onButtonPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const CropReportScreen()));
+                // Navigate to the list of crops to see reports
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
               },
             ),
           ],

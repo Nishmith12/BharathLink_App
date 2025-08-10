@@ -1,184 +1,178 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../widgets/section_header.dart';
 import '../widgets/quality_note.dart';
 import '../widgets/info_tip.dart';
 
 class CropReportScreen extends StatelessWidget {
-  const CropReportScreen({super.key});
+  final String cropId;
+
+  const CropReportScreen({super.key, required this.cropId});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Your Crop Quality Report & Payment Details'),
+        title: const Text('Crop Quality Report'),
         toolbarHeight: 80, // Adjust height to fit longer title
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          children: [
-            const SectionHeader(
-              icon: Icons.bar_chart,
-              title: 'Crop Quality Summary',
-            ),
-            const SizedBox(height: 15),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    _buildCropQualityItem(
-                      context,
-                      crop: 'Coconut',
-                      score: 92,
-                      status: 'Excellent',
-                      suggestion: 'Quality Score: 92% - Slightly high moisture detected. Suggest drying 2 extra days.',
-                      statusColor: Colors.green,
-                    ),
-                    const Divider(),
-                    _buildCropQualityItem(
-                      context,
-                      crop: 'Paddy',
-                      score: 84,
-                      status: 'Good',
-                      suggestion: 'Quality Score: 84% - Good grain quality. Maintain current storage conditions.',
-                      statusColor: Colors.orange,
-                    ),
-                    const Divider(),
-                    _buildCropQualityItem(
-                      context,
-                      crop: 'Arecanut',
-                      score: 78,
-                      status: 'Needs Improvement',
-                      suggestion: 'Quality Score: 78% - Some unripe nuts detected.',
-                      statusColor: Colors.red,
-                    ),
-                  ],
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('crops').doc(cropId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text("Crop not found."));
+          }
+          if (snapshot.hasError) {
+            return const Center(child: Text("Something went wrong!"));
+          }
+
+          Map<String, dynamic> cropData = snapshot.data!.data()! as Map<String, dynamic>;
+
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              children: [
+                const SectionHeader(
+                  icon: Icons.bar_chart,
+                  title: 'Crop Quality Summary',
                 ),
-              ),
-            ),
-            const SizedBox(height: 30),
-            const SectionHeader(
-              icon: Icons.bug_report,
-              title: 'Defects Detected',
-            ),
-            const SizedBox(height: 15),
-            const Card(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    QualityNote(
-                      icon: Icons.warning_amber,
-                      title: 'Coconut Quality Note',
-                      description: 'Slightly high moisture detected (12.5%). Suggest drying 2 extra days to reach optimal 10% moisture level for better pricing.',
-                      color: Color(0xFFF1F8E9),
-                      iconColor: Colors.lightGreen,
-                    ),
-                    SizedBox(height: 15),
-                    QualityNote(
-                      icon: Icons.warning_amber,
-                      title: 'Arecanut Quality Note',
-                      description: 'Some unripe nuts detected (15%). Suggest delayed harvest by 7-10 days for more uniform maturity and better market value.',
-                      color: Color(0xFFFFF3E0),
-                      iconColor: Colors.orange,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 30),
-            const SectionHeader(
-              icon: Icons.payments,
-              title: 'Payment Summary',
-            ),
-            const SizedBox(height: 15),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Row(
+                const SizedBox(height: 15),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
                       children: [
-                        Expanded(
-                          child: _buildPaymentDetailTile(
-                            context,
-                            label: 'Amount',
-                            value: '₹15,000',
-                          ),
+                        _buildCropQualityItem(
+                          context,
+                          crop: cropData['cropName'] ?? 'N/A',
+                          score: 92, // Mock data
+                          status: 'Excellent', // Mock data
+                          suggestion: 'Quality Score: 92% - Slightly high moisture detected. Suggest drying 2 extra days.', // Mock data
+                          statusColor: Colors.green, // Mock data
                         ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildPaymentDetailTile(
-                            context,
-                            label: 'Date',
-                            value: '2025-04-26',
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                const SectionHeader(
+                  icon: Icons.bug_report,
+                  title: 'Defects Detected',
+                ),
+                const SizedBox(height: 15),
+                const Card(
+                  child: Padding(
+                    padding: EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        QualityNote(
+                          icon: Icons.warning_amber,
+                          title: 'Coconut Quality Note',
+                          description: 'Slightly high moisture detected (12.5%). Suggest drying 2 extra days to reach optimal 10% moisture level for better pricing.',
+                          color: Color(0xFFF1F8E9),
+                          iconColor: Colors.lightGreen,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                const SectionHeader(
+                  icon: Icons.payments,
+                  title: 'Payment Summary',
+                ),
+                const SizedBox(height: 15),
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
+                      children: [
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildPaymentDetailTile(
+                                context,
+                                label: 'Amount',
+                                value: '₹${cropData['price'] * cropData['quantity']}',
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildPaymentDetailTile(
+                                context,
+                                label: 'Date',
+                                value: '2025-08-10', // Mock data
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 15),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _buildPaymentDetailTile(
+                                context,
+                                label: 'Transaction ID',
+                                value: '#BLink20250810', // Mock data
+                              ),
+                            ),
+                            const SizedBox(width: 15),
+                            Expanded(
+                              child: _buildPaymentDetailTile(
+                                context,
+                                label: 'Payment Method',
+                                value: 'UPI', // Mock data
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 20),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.lightGreen.shade50,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Payment Confirmed',
+                                style: TextStyle(color: Colors.lightGreen, fontWeight: FontWeight.bold),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 15),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _buildPaymentDetailTile(
-                            context,
-                            label: 'Transaction ID',
-                            value: '#BLink20250426',
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: _buildPaymentDetailTile(
-                            context,
-                            label: 'Payment Method',
-                            value: 'UPI',
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 20),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: Colors.lightGreen.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.check_circle_outline, color: Colors.lightGreen, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Payment Confirmed',
-                            style: TextStyle(color: Colors.lightGreen, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 30),
+                const InfoTip(
+                  icon: Icons.info_outline,
+                  text: 'Farmer\'s Tip\nDry coconut under full sunlight for 2 extra days for premium prices!',
+                  color: Color(0xFFE3F2FD),
+                  iconColor: Colors.blue,
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Learning how to improve crop quality... (Mock)')),
+                    );
+                  },
+                  icon: const Icon(Icons.book),
+                  label: const Text('Learn How to Improve Crop Quality'),
+                ),
+              ],
             ),
-            const SizedBox(height: 30),
-            const InfoTip(
-              icon: Icons.info_outline,
-              text: 'Farmer\'s Tip\nDry coconut under full sunlight for 2 extra days for premium prices!',
-              color: Color(0xFFE3F2FD),
-              iconColor: Colors.blue,
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Learning how to improve crop quality... (Mock)')),
-                );
-              },
-              icon: const Icon(Icons.book),
-              label: const Text('Learn How to Improve Crop Quality'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
