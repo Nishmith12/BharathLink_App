@@ -8,7 +8,8 @@ import 'kyc_screen.dart';
 import 'feedback_screen.dart';
 import 'crop_report_screen.dart';
 import 'login_screen.dart';
-import 'profile_screen.dart'; // Import the new profile screen
+import 'profile_screen.dart';
+import 'tips_screen.dart'; // Import the new tips screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -97,9 +98,7 @@ class HomeScreen extends StatelessWidget {
                   label: 'Tips & Guidance',
                   iconColor: Colors.teal.shade400,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tips & Guidance (Feature Coming Soon)')),
-                    );
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TipsScreen()));
                   },
                 ),
                 _HomeActionCard(
