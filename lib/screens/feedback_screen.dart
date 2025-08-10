@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'schedule_visit_screen.dart';
 import '../widgets/section_header.dart';
 import '../widgets/info_tip.dart';
@@ -16,6 +18,52 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   bool _isNeedsImprovement = false;
   final TextEditingController _commentsController = TextEditingController();
   final TextEditingController _suggestionsController = TextEditingController();
+  bool _isLoading = false;
+
+  void _submitFeedback() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("You must be logged in to submit feedback.")),
+      );
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await FirebaseFirestore.instance.collection('feedback').add({
+        'userId': user.uid,
+        'rating': _starRating,
+        'isGoodExperience': _isGoodExperience,
+        'needsImprovement': _isNeedsImprovement,
+        'comments': _commentsController.text,
+        'suggestions': _suggestionsController.text,
+        'submittedAt': FieldValue.serverTimestamp(),
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Feedback submitted successfully!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Failed to submit feedback: $e")),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -164,13 +212,10 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Feedback Submitted (Mock)')),
-                      );
-                      Navigator.pop(context);
-                    },
+                  child: _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton.icon(
+                    onPressed: _submitFeedback,
                     icon: const Icon(Icons.send),
                     label: const Text('Submit Feedback'),
                     style: ElevatedButton.styleFrom(

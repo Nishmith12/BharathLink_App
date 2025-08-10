@@ -8,6 +8,7 @@ import 'kyc_screen.dart';
 import 'feedback_screen.dart';
 import 'crop_report_screen.dart';
 import 'login_screen.dart';
+import 'profile_screen.dart'; // Import the new profile screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -162,9 +163,7 @@ class HomeScreen extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.person, color: Colors.white),
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Profile (Feature Coming Soon)')),
-                  );
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
                 },
               ),
             ],
