@@ -13,7 +13,8 @@ import 'tips_screen.dart';
 import 'payments_screen.dart';
 import 'sell_crop_screen.dart';
 import 'search_results_screen.dart';
-import 'market_prices_screen.dart'; // Import the new screen
+import 'market_prices_screen.dart';
+import 'browse_crops_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -25,7 +26,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Welcome to Bharath Link'),
-        automaticallyImplyLeading: false, // No back button on home
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -41,7 +42,6 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Search Bar
             TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -67,14 +67,46 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 30),
 
-            // Main Action Grid
             GridView.count(
               shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(), // Disable scrolling of grid
+              physics: const NeverScrollableScrollPhysics(),
               crossAxisCount: 3,
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
               children: [
+                // --- NEW CARD ADDED ---
+                _HomeActionCard(
+                  icon: Icons.store,
+                  label: 'Browse Market',
+                  iconColor: Colors.blue.shade700,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const BrowseCropsScreen()));
+                  },
+                ),
+                _HomeActionCard(
+                  icon: Icons.sell,
+                  label: 'Sell Crop',
+                  iconColor: Colors.red.shade400,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropScreen()));
+                  },
+                ),
+                _HomeActionCard(
+                  icon: Icons.stacked_line_chart,
+                  label: 'Crop Status',
+                  iconColor: Colors.purple.shade400,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
+                  },
+                ),
+                _HomeActionCard(
+                  icon: Icons.bar_chart,
+                  label: 'Market Prices',
+                  iconColor: Colors.deepPurple.shade400,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketPricesScreen()));
+                  },
+                ),
                 _HomeActionCard(
                   icon: Icons.camera_alt,
                   label: 'Scan Crop',
@@ -91,23 +123,6 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleVisitScreen()));
                   },
                 ),
-                // --- UPDATED CARD ---
-                _HomeActionCard(
-                  icon: Icons.bar_chart,
-                  label: 'Market Prices',
-                  iconColor: Colors.deepPurple.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketPricesScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.stacked_line_chart,
-                  label: 'Crop Status',
-                  iconColor: Colors.purple.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
-                  },
-                ),
                 _HomeActionCard(
                   icon: Icons.lightbulb_outline,
                   label: 'Tips & Guidance',
@@ -117,11 +132,11 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _HomeActionCard(
-                  icon: Icons.sell,
-                  label: 'Sell Crop',
-                  iconColor: Colors.red.shade400,
+                  icon: Icons.payments,
+                  label: 'My Payments',
+                  iconColor: Colors.orange.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -130,22 +145,6 @@ class HomeScreen extends StatelessWidget {
                   iconColor: Colors.brown.shade400,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const KycScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.rate_review,
-                  label: 'Feedback',
-                  iconColor: Colors.indigo.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const FeedbackScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.payments,
-                  label: 'My Payments',
-                  iconColor: Colors.orange.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
                   },
                 ),
               ],
@@ -162,9 +161,7 @@ class HomeScreen extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.home, color: Colors.white),
-                onPressed: () {
-                  // Already on Home
-                },
+                onPressed: () {},
               ),
               IconButton(
                 icon: const Icon(Icons.notifications, color: Colors.white),
