@@ -1,9 +1,77 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-import 'dart:async';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../widgets/info_tip.dart';
 
-class ScanCropScreen extends StatelessWidget {
+class ScanCropScreen extends StatefulWidget {
   const ScanCropScreen({super.key});
+
+  @override
+  State<ScanCropScreen> createState() => _ScanCropScreenState();
+}
+
+class _ScanCropScreenState extends State<ScanCropScreen> {
+  File? _image;
+  final picker = ImagePicker();
+  bool _isUploading = false;
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  Future<void> _uploadImage() async {
+    if (_image == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select an image first.')),
+      );
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('You must be logged in to upload an image.')),
+      );
+      return;
+    }
+
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      String fileName = 'crop_scans/${user.uid}/${DateTime.now().millisecondsSinceEpoch}.jpg';
+      Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+      await storageRef.putFile(_image!);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Image uploaded successfully!')),
+        );
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload image: $e')),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isUploading = false;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,7 +87,8 @@ class ScanCropScreen extends StatelessWidget {
               child: Card(
                 color: Colors.lightGreen.shade50,
                 child: Center(
-                  child: Column(
+                  child: _image == null
+                      ? Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(
@@ -29,35 +98,40 @@ class ScanCropScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        'Point camera at your crop',
+                        'Select an image to scan',
                         style: TextStyle(
                           color: Colors.lightGreen.shade600,
                           fontSize: 16,
                         ),
                       ),
                     ],
-                  ),
+                  )
+                      : Image.file(_image!),
                 ),
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Scanning Crop... (Mock)')),
-                );
-                // In a real app, this would trigger camera and process the result.
-                // For now, just show a confirmation.
-                Future.delayed(const Duration(seconds: 2), () {
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Scan complete! View the report in "Crop Status".')),
-                    );
-                    Navigator.pop(context);
-                  }
-                });
-              },
-              child: const Text('SCAN NOW'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.gallery),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Gallery'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () => _pickImage(ImageSource.camera),
+                  icon: const Icon(Icons.camera_alt),
+                  label: const Text('Camera'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            _isUploading
+                ? const CircularProgressIndicator()
+                : ElevatedButton(
+              onPressed: _uploadImage,
+              child: const Text('UPLOAD & SCAN'),
             ),
             const SizedBox(height: 10),
             Text(
