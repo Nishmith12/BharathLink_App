@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'scan_crop_screen.dart';
-import 'schedule_visit_screen.dart';
 import 'sales_tracking_screen.dart';
 import 'kyc_screen.dart';
 import 'feedback_screen.dart';
@@ -15,7 +14,9 @@ import 'sell_crop_screen.dart';
 import 'search_results_screen.dart';
 import 'market_prices_screen.dart';
 import 'browse_crops_screen.dart';
-import 'offers_screen.dart'; // Import the new screen
+import 'offers_screen.dart';
+import 'visit_requests_screen.dart'; // Import the new screen
+import 'schedule_visit_screen.dart'; // Keep this for now if needed elsewhere
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -83,7 +84,6 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const BrowseCropsScreen()));
                   },
                 ),
-                // --- NEW CARD ADDED ---
                 _HomeActionCard(
                   icon: Icons.inbox,
                   label: 'Offers Received',
@@ -124,12 +124,13 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanCropScreen()));
                   },
                 ),
+                // --- UPDATED CARD ---
                 _HomeActionCard(
                   icon: Icons.calendar_today,
-                  label: 'Schedule Visit',
+                  label: 'Visit Requests', // Changed label
                   iconColor: Colors.blue.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleVisitScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitRequestsScreen())); // Navigate to new screen
                   },
                 ),
                 _HomeActionCard(
