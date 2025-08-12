@@ -14,7 +14,8 @@ import 'payments_screen.dart';
 import 'sell_crop_screen.dart';
 import 'search_results_screen.dart';
 import 'market_prices_screen.dart';
-import 'browse_crops_screen.dart'; // Import the new screen
+import 'browse_crops_screen.dart';
+import 'offers_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -74,13 +75,21 @@ class HomeScreen extends StatelessWidget {
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
               children: [
-                // --- NEW CARD ADDED ---
                 _HomeActionCard(
                   icon: Icons.store,
                   label: 'Browse Market',
                   iconColor: Colors.blue.shade700,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const BrowseCropsScreen()));
+                  },
+                ),
+                // --- NEW CARD ADDED ---
+                _HomeActionCard(
+                  icon: Icons.inbox,
+                  label: 'Offers Received',
+                  iconColor: Colors.amber.shade800,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -137,14 +146,6 @@ class HomeScreen extends StatelessWidget {
                   iconColor: Colors.orange.shade400,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.assignment,
-                  label: 'KYC Form',
-                  iconColor: Colors.brown.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const KycScreen()));
                   },
                 ),
               ],

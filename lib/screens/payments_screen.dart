@@ -1,3 +1,5 @@
+// lib/screens/payments_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -37,12 +39,14 @@ class PaymentsScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+              final transactionDate = data['transactionDate'] as Timestamp?;
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 16.0),
                 child: ListTile(
                   leading: CircleAvatar(
-                    backgroundColor: Colors.lightGreen.shade100,
-                    child: const Icon(Icons.currency_rupee, color: Colors.lightGreen),
+                    backgroundColor: Colors.green.shade100,
+                    child: const Icon(Icons.currency_rupee, color: Colors.green),
                   ),
                   title: Text(
                     'Payment for ${data['cropName'] ?? 'N/A'}',
@@ -50,11 +54,12 @@ class PaymentsScreen extends StatelessWidget {
                   ),
                   subtitle: Text(
                     'Amount: ₹${data['amount'] ?? 0}',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                   trailing: Text(
-                    data['transactionDate'] == null
+                    transactionDate == null
                         ? ''
-                        : DateFormat.yMMMd().format((data['transactionDate'] as Timestamp).toDate()),
+                        : DateFormat.yMMMd().format(transactionDate.toDate()),
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ),
