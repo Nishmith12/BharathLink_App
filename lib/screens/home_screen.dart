@@ -1,18 +1,19 @@
+// lib/screens/home_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'scan_crop_screen.dart';
 import 'schedule_visit_screen.dart';
 import 'sales_tracking_screen.dart';
-import 'sell_crop_flow_screen.dart';
 import 'kyc_screen.dart';
 import 'feedback_screen.dart';
-import 'crop_report_screen.dart';
 import 'login_screen.dart';
 import 'profile_screen.dart';
 import 'tips_screen.dart';
 import 'payments_screen.dart';
 import 'sell_crop_screen.dart';
-import 'search_results_screen.dart'; // Import the new search results screen
+import 'search_results_screen.dart';
+import 'market_prices_screen.dart'; // Import the new screen
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -90,12 +91,13 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ScheduleVisitScreen()));
                   },
                 ),
+                // --- UPDATED CARD ---
                 _HomeActionCard(
-                  icon: Icons.currency_rupee,
-                  label: 'My Payments',
-                  iconColor: Colors.orange.shade400,
+                  icon: Icons.bar_chart,
+                  label: 'Market Prices',
+                  iconColor: Colors.deepPurple.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketPricesScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -139,11 +141,11 @@ class HomeScreen extends StatelessWidget {
                   },
                 ),
                 _HomeActionCard(
-                  icon: Icons.receipt_long,
-                  label: 'Crop Report',
-                  iconColor: Colors.cyan.shade400,
+                  icon: Icons.payments,
+                  label: 'My Payments',
+                  iconColor: Colors.orange.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
                   },
                 ),
               ],
