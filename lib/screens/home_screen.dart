@@ -2,7 +2,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'scan_crop_screen.dart';
+import 'schedule_visit_screen.dart';
 import 'sales_tracking_screen.dart';
 import 'kyc_screen.dart';
 import 'feedback_screen.dart';
@@ -15,16 +17,22 @@ import 'search_results_screen.dart';
 import 'market_prices_screen.dart';
 import 'browse_crops_screen.dart';
 import 'offers_screen.dart';
-import 'visit_requests_screen.dart'; // Import the new screen
-import 'schedule_visit_screen.dart'; // Keep this for now if needed elsewhere
+import 'visit_requests_screen.dart';
+import 'view_feedback_screen.dart';
 
-class HomeScreen extends StatelessWidget {
+// Converted to a StatefulWidget to fetch and display dynamic data
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final TextEditingController searchController = TextEditingController();
+  State<HomeScreen> createState() => _HomeScreenState();
+}
 
+class _HomeScreenState extends State<HomeScreen> {
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Welcome to Bharath Link'),
@@ -68,6 +76,11 @@ class HomeScreen extends StatelessWidget {
               },
             ),
             const SizedBox(height: 30),
+
+            // --- NEW: Dynamic Dashboard Widget ---
+            _buildDashboard(context),
+            const SizedBox(height: 30),
+
 
             GridView.count(
               shrinkWrap: true,
@@ -124,21 +137,20 @@ class HomeScreen extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanCropScreen()));
                   },
                 ),
-                // --- UPDATED CARD ---
                 _HomeActionCard(
                   icon: Icons.calendar_today,
-                  label: 'Visit Requests', // Changed label
+                  label: 'Visit Requests',
                   iconColor: Colors.blue.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitRequestsScreen())); // Navigate to new screen
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitRequestsScreen()));
                   },
                 ),
                 _HomeActionCard(
-                  icon: Icons.lightbulb_outline,
-                  label: 'Tips & Guidance',
-                  iconColor: Colors.teal.shade400,
+                  icon: Icons.rate_review,
+                  label: 'View Feedback',
+                  iconColor: Colors.indigo.shade400,
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const TipsScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewFeedbackScreen()));
                   },
                 ),
                 _HomeActionCard(
@@ -183,6 +195,95 @@ class HomeScreen extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // --- Widget for the new dashboard ---
+  Widget _buildDashboard(BuildContext context) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser == null) return const SizedBox.shrink(); // Don't show if not logged in
+
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "My Farm Status",
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            const Divider(height: 20),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                // --- Active Listings Counter ---
+                _buildDashboardItem(
+                  context,
+                  stream: FirebaseFirestore.instance
+                      .collection('crops')
+                      .where('ownerId', isEqualTo: currentUser.uid)
+                      .where('status', isNotEqualTo: 'sold') // Only count unsold crops
+                      .snapshots(),
+                  icon: Icons.list_alt,
+                  label: "Active Listings",
+                  color: Colors.blue,
+                ),
+                // --- Pending Offers Counter ---
+                _buildDashboardItem(
+                  context,
+                  stream: FirebaseFirestore.instance
+                      .collection('offers')
+                      .where('farmerId', isEqualTo: currentUser.uid)
+                      .where('status', isEqualTo: 'pending')
+                      .snapshots(),
+                  icon: Icons.inbox,
+                  label: "Pending Offers",
+                  color: Colors.orange,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // --- Helper widget for each dashboard item ---
+  Widget _buildDashboardItem(
+      BuildContext context, {
+        required Stream<QuerySnapshot> stream,
+        required IconData icon,
+        required String label,
+        required Color color,
+      }) {
+    return StreamBuilder<QuerySnapshot>(
+      stream: stream,
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) {
+          return const CircularProgressIndicator();
+        }
+        final count = snapshot.data!.docs.length;
+        return Column(
+          children: [
+            CircleAvatar(
+              radius: 25,
+              backgroundColor: color,
+              child: Icon(icon, color: Colors.white, size: 28),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              count.toString(),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            Text(
+              label,
+              style: TextStyle(color: Colors.grey.shade600),
+            ),
+          ],
+        );
+      },
     );
   }
 }
