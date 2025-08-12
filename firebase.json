@@ -1,1 +1,38 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"bharathlink-app","appId":"1:724794500028:android:96f6edd2ab3170b37781b9","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"bharathlink-app","configurations":{"android":"1:724794500028:android:96f6edd2ab3170b37781b9","ios":"1:724794500028:ios:1c60903509ad0e857781b9","macos":"1:724794500028:ios:1c60903509ad0e857781b9","web":"1:724794500028:web:ac74c945c6ad96c97781b9","windows":"1:724794500028:web:ce0c932c509d42767781b9"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "bharathlink-app",
+          "appId": "1:724794500028:android:96f6edd2ab3170b37781b9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "bharathlink-app",
+          "configurations": {
+            "android": "1:724794500028:android:96f6edd2ab3170b37781b9",
+            "ios": "1:724794500028:ios:1c60903509ad0e857781b9",
+            "macos": "1:724794500028:ios:1c60903509ad0e857781b9",
+            "web": "1:724794500028:web:ac74c945c6ad96c97781b9",
+            "windows": "1:724794500028:web:ce0c932c509d42767781b9"
+          }
+        }
+      }
+    }
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ]
+    }
+  ]
+}

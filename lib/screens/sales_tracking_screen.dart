@@ -1,8 +1,10 @@
+// lib/screens/sales_tracking_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
-import 'crop_report_screen.dart'; // Import the crop report screen
+import 'crop_report_screen.dart';
 
 class SalesTrackingScreen extends StatelessWidget {
   const SalesTrackingScreen({super.key});
@@ -38,12 +40,20 @@ class SalesTrackingScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16.0),
             children: snapshot.data!.docs.map((DocumentSnapshot document) {
               Map<String, dynamic> data = document.data()! as Map<String, dynamic>;
+
+              // Check for imageUrl, provide a placeholder if it's null
+              final imageUrl = data['imageUrl'] as String?;
+
               return Card(
                 margin: const EdgeInsets.only(bottom: 16.0),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.lightGreen.shade100,
-                    child: const Icon(Icons.grain, color: Colors.lightGreen),
+                    // Display the image if the URL exists, otherwise show an icon
+                    backgroundImage: imageUrl != null ? NetworkImage(imageUrl) : null,
+                    child: imageUrl == null
+                        ? const Icon(Icons.grain, color: Colors.lightGreen)
+                        : null,
                   ),
                   title: Text(
                     data['cropName'] ?? 'No Name',

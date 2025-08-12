@@ -1,6 +1,12 @@
+// lib/screens/sell_crop_screen.dart
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:mime/mime.dart';
 
 class SellCropScreen extends StatefulWidget {
   const SellCropScreen({super.key});
@@ -14,6 +20,21 @@ class _SellCropScreenState extends State<SellCropScreen> {
   final quantityController = TextEditingController();
   final priceController = TextEditingController();
   bool _isLoading = false;
+  XFile? _image;
+  Uint8List? _imageData; // To hold image data for display
+  final picker = ImagePicker();
+
+  Future<void> _pickImage(ImageSource source) async {
+    final pickedFile = await picker.pickImage(source: source);
+
+    if (pickedFile != null) {
+      final bytes = await pickedFile.readAsBytes();
+      setState(() {
+        _image = pickedFile;
+        _imageData = bytes; // Store the image data in memory
+      });
+    }
+  }
 
   void _listCrop() async {
     final user = FirebaseAuth.instance.currentUser;
@@ -33,16 +54,37 @@ class _SellCropScreenState extends State<SellCropScreen> {
       return;
     }
 
+    if (_image == null || _imageData == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please add an image of the crop.")),
+      );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
+      // Use the image's name for a more reliable MIME type lookup
+      String fileName = 'crop_listings/${user.uid}/${DateTime.now().millisecondsSinceEpoch}-${_image!.name}';
+      Reference storageRef = FirebaseStorage.instance.ref().child(fileName);
+
+      final metadata = SettableMetadata(
+        contentType: lookupMimeType(_image!.name), // Use the original file name
+      );
+
+      UploadTask uploadTask = storageRef.putData(_imageData!, metadata);
+
+      TaskSnapshot taskSnapshot = await uploadTask;
+      String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+
       await FirebaseFirestore.instance.collection('crops').add({
         'ownerId': user.uid,
         'cropName': cropNameController.text,
         'quantity': int.tryParse(quantityController.text) ?? 0,
         'price': double.tryParse(priceController.text) ?? 0.0,
+        'imageUrl': downloadUrl,
         'listedAt': FieldValue.serverTimestamp(),
       });
 
@@ -114,6 +156,61 @@ class _SellCropScreenState extends State<SellCropScreen> {
                     labelText: "Price (₹/kg)",
                     hintText: "e.g., 25, 30.50",
                     prefixIcon: Icon(Icons.currency_rupee, color: Colors.lightGreen),
+                  ),
+                ),
+                const SizedBox(height: 30),
+                Container(
+                  height: 150,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: _imageData == null
+                      ? Center(
+                    child: TextButton.icon(
+                      icon: const Icon(Icons.add_a_photo, color: Colors.lightGreen),
+                      label: const Text(
+                        'Add Crop Image',
+                        style: TextStyle(color: Colors.lightGreen),
+                      ),
+                      onPressed: () {
+                        showModalBottomSheet(
+                          context: context,
+                          builder: (BuildContext bc) {
+                            return SafeArea(
+                              child: Wrap(
+                                children: <Widget>[
+                                  ListTile(
+                                    leading: const Icon(Icons.photo_library),
+                                    title: const Text('Photo Library'),
+                                    onTap: () {
+                                      _pickImage(ImageSource.gallery);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.photo_camera),
+                                    title: const Text('Camera'),
+                                    onTap: () {
+                                      _pickImage(ImageSource.camera);
+                                      Navigator.of(context).pop();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  )
+                      : ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: Image.memory(
+                      _imageData!,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 30),
