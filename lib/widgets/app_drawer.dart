@@ -12,6 +12,7 @@ import '../screens/visit_requests_screen.dart';
 import '../screens/view_feedback_screen.dart';
 import '../screens/tips_screen.dart';
 import '../screens/kyc_screen.dart';
+import '../screens/my_chats_screen.dart'; // Import the new screen
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -39,6 +40,12 @@ class AppDrawer extends StatelessWidget {
             icon: Icons.person_outline,
             text: 'My Profile',
             onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen())),
+          ),
+          // --- NEW: My Chats Link ---
+          _createDrawerItem(
+            icon: Icons.chat_bubble_outline,
+            text: 'My Chats',
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyChatsScreen())),
           ),
           _createDrawerItem(
             icon: Icons.store_outlined,

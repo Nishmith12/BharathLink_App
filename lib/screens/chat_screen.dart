@@ -23,16 +23,22 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   final currentUser = FirebaseAuth.instance.currentUser;
   String _receiverName = '';
+  String _senderName = '';
   late String _chatRoomId;
 
   @override
   void initState() {
     super.initState();
-    _fetchReceiverName();
-    _chatRoomId = _getChatRoomId(currentUser!.uid, widget.receiverId);
+    _initializeChat();
   }
 
-  // Creates a unique, consistent chat room ID for any pair of users
+  Future<void> _initializeChat() async {
+    if (currentUser == null) return;
+    _chatRoomId = _getChatRoomId(currentUser!.uid, widget.receiverId);
+    await _fetchUserNames();
+    await _createChatRoomIfNeeded();
+  }
+
   String _getChatRoomId(String userId1, String userId2) {
     if (userId1.hashCode <= userId2.hashCode) {
       return '$userId1\_$userId2';
@@ -41,17 +47,40 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  Future<void> _fetchReceiverName() async {
-    final userDoc = await FirebaseFirestore.instance.collection('users').doc(widget.receiverId).get();
-    if (userDoc.exists && mounted) {
+  Future<void> _fetchUserNames() async {
+    final receiverDoc = await FirebaseFirestore.instance.collection('users').doc(widget.receiverId).get();
+    final senderDoc = await FirebaseFirestore.instance.collection('users').doc(currentUser!.uid).get();
+    if (mounted) {
       setState(() {
-        _receiverName = userDoc.data()?['fullName'] ?? widget.receiverName;
+        _receiverName = receiverDoc.data()?['fullName'] ?? widget.receiverName;
+        _senderName = senderDoc.data()?['fullName'] ?? 'You';
+      });
+    }
+  }
+
+  // --- NEW: Create the chat room document if it doesn't exist ---
+  Future<void> _createChatRoomIfNeeded() async {
+    final chatRoomRef = FirebaseFirestore.instance.collection('chats').doc(_chatRoomId);
+    final doc = await chatRoomRef.get();
+
+    if (!doc.exists) {
+      await chatRoomRef.set({
+        'participantIds': [currentUser!.uid, widget.receiverId],
+        'participants': {
+          currentUser!.uid: {'name': _senderName},
+          widget.receiverId: {'name': _receiverName},
+        },
+        'lastMessage': '',
+        'lastTimestamp': FieldValue.serverTimestamp(),
       });
     }
   }
 
   void _sendMessage() async {
     if (_messageController.text.isNotEmpty && currentUser != null) {
+      final messageText = _messageController.text;
+      _messageController.clear();
+
       await FirebaseFirestore.instance
           .collection('chats')
           .doc(_chatRoomId)
@@ -59,10 +88,15 @@ class _ChatScreenState extends State<ChatScreen> {
           .add({
         'senderId': currentUser!.uid,
         'receiverId': widget.receiverId,
-        'message': _messageController.text,
+        'message': messageText,
         'timestamp': FieldValue.serverTimestamp(),
       });
-      _messageController.clear();
+
+      // Update the last message in the chat room document
+      await FirebaseFirestore.instance.collection('chats').doc(_chatRoomId).update({
+        'lastMessage': messageText,
+        'lastTimestamp': FieldValue.serverTimestamp(),
+      });
     }
   }
 
