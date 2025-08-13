@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_screen.dart';
 import 'signup_screen.dart';
-import '../services/notification_service.dart'; // Import the notification service
+// No longer need to import NotificationService here
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -24,15 +24,13 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _emailController.text,
         password: _passwordController.text,
       );
 
-      if (credential.user != null) {
-        // --- NEW: Save the FCM token after successful login ---
-        await NotificationService().initNotifications();
-      }
+      // --- REMOVED: The old initialization call ---
+      // await NotificationService().initNotifications();
 
       if (mounted) {
         Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HomeScreen()));

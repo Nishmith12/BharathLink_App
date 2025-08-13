@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:bharathlink_full_demo/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'services/notification_service.dart'; // Import the new service
+// No longer need to import NotificationService here
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -12,8 +12,8 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // --- NEW: Initialize the notification service ---
-  await NotificationService().initNotifications();
+  // --- REMOVED: The old initialization call ---
+  // await NotificationService().initNotifications();
 
   runApp(const BharathLinkApp());
 }
