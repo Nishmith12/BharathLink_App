@@ -3,24 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import '../widgets/app_drawer.dart'; // Import the new drawer
 import 'scan_crop_screen.dart';
-import 'schedule_visit_screen.dart';
-import 'sales_tracking_screen.dart';
-import 'kyc_screen.dart';
-import 'feedback_screen.dart';
-import 'login_screen.dart';
-import 'profile_screen.dart';
-import 'tips_screen.dart';
-import 'payments_screen.dart';
 import 'sell_crop_screen.dart';
 import 'search_results_screen.dart';
-import 'market_prices_screen.dart';
 import 'browse_crops_screen.dart';
 import 'offers_screen.dart';
-import 'visit_requests_screen.dart';
-import 'view_feedback_screen.dart';
 
-// Converted to a StatefulWidget to fetch and display dynamic data
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -34,18 +23,10 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // The drawer property adds the hamburger menu icon automatically
+      drawer: const AppDrawer(),
       appBar: AppBar(
-        title: const Text('Welcome to Bharath Link'),
-        automaticallyImplyLeading: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () async {
-              await FirebaseAuth.instance.signOut();
-              Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
-            },
-          ),
-        ],
+        title: const Text('Dashboard'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
@@ -77,18 +58,26 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 30),
 
-            // --- NEW: Dynamic Dashboard Widget ---
             _buildDashboard(context),
             const SizedBox(height: 30),
 
-
+            // --- SIMPLIFIED Grid for primary actions ---
             GridView.count(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 3,
+              crossAxisCount: 2, // Reduced to 2 columns for a cleaner look
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
+              childAspectRatio: 1.2, // Adjust aspect ratio for larger cards
               children: [
+                _HomeActionCard(
+                  icon: Icons.sell,
+                  label: 'Sell a Crop',
+                  iconColor: Colors.red.shade400,
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropScreen()));
+                  },
+                ),
                 _HomeActionCard(
                   icon: Icons.store,
                   label: 'Browse Market',
@@ -99,66 +88,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 _HomeActionCard(
                   icon: Icons.inbox,
-                  label: 'Offers Received',
+                  label: 'My Offers',
                   iconColor: Colors.amber.shade800,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersScreen()));
                   },
                 ),
                 _HomeActionCard(
-                  icon: Icons.sell,
-                  label: 'Sell Crop',
-                  iconColor: Colors.red.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SellCropScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.stacked_line_chart,
-                  label: 'Crop Status',
-                  iconColor: Colors.purple.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SalesTrackingScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.bar_chart,
-                  label: 'Market Prices',
-                  iconColor: Colors.deepPurple.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MarketPricesScreen()));
-                  },
-                ),
-                _HomeActionCard(
                   icon: Icons.camera_alt,
-                  label: 'Scan Crop',
+                  label: 'Scan a Crop',
                   iconColor: Colors.lightGreen,
                   onTap: () {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanCropScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.calendar_today,
-                  label: 'Visit Requests',
-                  iconColor: Colors.blue.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const VisitRequestsScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.rate_review,
-                  label: 'View Feedback',
-                  iconColor: Colors.indigo.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const ViewFeedbackScreen()));
-                  },
-                ),
-                _HomeActionCard(
-                  icon: Icons.payments,
-                  label: 'My Payments',
-                  iconColor: Colors.orange.shade400,
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const PaymentsScreen()));
                   },
                 ),
               ],
@@ -166,42 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        color: Colors.lightGreen,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.home, color: Colors.white),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: const Icon(Icons.notifications, color: Colors.white),
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Notifications (Feature Coming Soon)')),
-                  );
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.person, color: Colors.white),
-                onPressed: () {
-                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 
-  // --- Widget for the new dashboard ---
   Widget _buildDashboard(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    if (currentUser == null) return const SizedBox.shrink(); // Don't show if not logged in
+    if (currentUser == null) return const SizedBox.shrink();
 
     return Card(
       elevation: 4,
@@ -218,19 +129,17 @@ class _HomeScreenState extends State<HomeScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                // --- Active Listings Counter ---
                 _buildDashboardItem(
                   context,
                   stream: FirebaseFirestore.instance
                       .collection('crops')
                       .where('ownerId', isEqualTo: currentUser.uid)
-                      .where('status', isNotEqualTo: 'sold') // Only count unsold crops
+                      .where('status', isNotEqualTo: 'sold')
                       .snapshots(),
                   icon: Icons.list_alt,
                   label: "Active Listings",
                   color: Colors.blue,
                 ),
-                // --- Pending Offers Counter ---
                 _buildDashboardItem(
                   context,
                   stream: FirebaseFirestore.instance
@@ -250,7 +159,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // --- Helper widget for each dashboard item ---
   Widget _buildDashboardItem(
       BuildContext context, {
         required Stream<QuerySnapshot> stream,
