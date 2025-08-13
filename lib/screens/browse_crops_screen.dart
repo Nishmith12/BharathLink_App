@@ -8,7 +8,6 @@ import 'crop_report_screen.dart'; // To view details
 class BrowseCropsScreen extends StatelessWidget {
   const BrowseCropsScreen({super.key});
 
-  // --- Helper function to show the offer dialog ---
   void _showMakeOfferDialog(BuildContext context, String cropId, String farmerId, String cropName) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
@@ -63,13 +62,12 @@ class BrowseCropsScreen extends StatelessWidget {
               child: const Text('Submit Offer'),
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  // --- Save offer to Firestore ---
                   await FirebaseFirestore.instance.collection('offers').add({
                     'cropId': cropId,
                     'farmerId': farmerId,
                     'buyerId': currentUser.uid,
                     'offerPrice': double.parse(offerController.text),
-                    'status': 'pending', // Initial status
+                    'status': 'pending',
                     'timestamp': FieldValue.serverTimestamp(),
                   });
 
@@ -117,6 +115,10 @@ class BrowseCropsScreen extends StatelessWidget {
               final imageUrl = data['imageUrl'] as String?;
               final farmerId = data['ownerId'] as String;
               final cropName = data['cropName'] as String? ?? 'N/A';
+              final listedAt = data['listedAt'] as Timestamp?;
+
+              // --- NEW: Check if the listing is recent ---
+              final bool isNew = listedAt != null && DateTime.now().difference(listedAt.toDate()).inHours < 24;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 16.0),
@@ -133,55 +135,90 @@ class BrowseCropsScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Stack( // Use a Stack to overlay the "New" badge
                         children: [
-                          if (imageUrl != null)
-                            Image.network(
-                              imageUrl,
-                              height: 180,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const SizedBox(
-                                height: 180,
-                                child: Center(child: Icon(Icons.error, color: Colors.red)),
-                              ),
-                            )
-                          else
-                            Container(
-                              height: 180,
-                              color: Colors.grey.shade200,
-                              child: const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
-                            ),
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  cropName,
-                                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (imageUrl != null)
+                                Image.network(
+                                  imageUrl,
+                                  height: 180,
+                                  width: double.infinity,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => const SizedBox(
+                                    height: 180,
+                                    child: Center(child: Icon(Icons.error, color: Colors.red)),
+                                  ),
+                                )
+                              else
+                                Container(
+                                  height: 180,
+                                  color: Colors.grey.shade200,
+                                  child: const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
                                 ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Price: ₹${data['price'] ?? 0}/kg',
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                          color: Colors.lightGreen.shade700,
-                                          fontWeight: FontWeight.bold
-                                      ),
+                                      cropName,
+                                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                                     ),
-                                    Text(
-                                      '${data['quantity'] ?? 0} kg available',
-                                      style: TextStyle(color: Colors.grey.shade700),
+                                    const SizedBox(height: 8),
+                                    FutureBuilder<DocumentSnapshot>(
+                                      future: FirebaseFirestore.instance.collection('users').doc(farmerId).get(),
+                                      builder: (context, userSnapshot) {
+                                        if (!userSnapshot.hasData) {
+                                          return const Text("Loading farmer info...");
+                                        }
+                                        final userData = userSnapshot.data!.data() as Map<String, dynamic>;
+                                        return Text(
+                                          'Sold by: ${userData['fullName'] ?? 'Anonymous Farmer'}',
+                                          style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                                        );
+                                      },
+                                    ),
+                                    const Divider(height: 20),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Price: ₹${data['price'] ?? 0}/kg',
+                                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                              color: Colors.lightGreen.shade700,
+                                              fontWeight: FontWeight.bold
+                                          ),
+                                        ),
+                                        Text(
+                                          '${data['quantity'] ?? 0} kg available',
+                                          style: TextStyle(color: Colors.grey.shade700),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
+                          // --- NEW: "New Listing" Badge ---
+                          if (isNew)
+                            Positioned(
+                              top: 10,
+                              left: 10,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: const Text(
+                                  'NEW',
+                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
