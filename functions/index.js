@@ -1,59 +1,57 @@
 // functions/index.js
 
 const {onObjectFinalized} = require("firebase-functions/v2/storage");
+const {onDocumentCreated} = require("firebase-functions/v2/firestore"); // New import
 const {logger} = require("firebase-functions");
 const admin = require("firebase-admin");
-const path = require("path"); // Import the path module
+const path = require("path");
 
-admin.initializeApp();
+// Keep your existing admin.initializeApp() at the top of the file.
 
+// --- Keep your existing analyzeCropImage function here ---
 exports.analyzeCropImage = onObjectFinalized({cpu: 1}, async (event) => {
-  const {bucket, name: filePath, contentType} = event.data;
+    // ... (your existing code for this function)
+});
 
-  if (!contentType || !contentType.startsWith("image/")) {
-    logger.log("This is not an image.", {filePath});
+
+// --- NEW: Function to send a notification for new chat messages ---
+exports.sendChatNotification = onDocumentCreated("chats/{chatRoomId}/messages/{messageId}", async (event) => {
+  const messageData = event.data.data();
+  const receiverId = messageData.receiverId;
+  const senderId = messageData.senderId;
+  const messageText = messageData.message;
+
+  // 1. Get the sender's name
+  const senderDoc = await admin.firestore().collection("users").doc(senderId).get();
+  const senderName = senderDoc.data()?.fullName ?? "Someone";
+
+  // 2. Get the recipient's FCM token
+  const receiverDoc = await admin.firestore().collection("users").doc(receiverId).get();
+  const fcmToken = receiverDoc.data()?.fcmToken;
+
+  if (!fcmToken) {
+    logger.log(`No FCM token found for user ${receiverId}. Cannot send notification.`);
     return null;
   }
 
-  if (!filePath || !filePath.startsWith("crop_listings/")) {
-    logger.log("Not a crop listing image.", {filePath});
-    return null;
-  }
-
-  await new Promise((resolve) => setTimeout(resolve, 5000));
-
-  const qualityScore = Math.floor(Math.random() * (98 - 85 + 1)) + 85;
-  const defects = ["Slightly high moisture detected", "Minor pest damage", "Uneven size"];
-  const randomDefect = defects[Math.floor(Math.random() * defects.length)];
-  const suggestion = "Suggest drying for 1-2 extra days for optimal pricing.";
-
-  // --- FIX: A more reliable way to find the document ---
-  // Extract the unique file name from the path.
-  const fileName = path.basename(filePath);
-
-  const cropsRef = admin.firestore().collection("crops");
-  // Query for a document where the imageUrl CONTAINS the unique file name.
-  const snapshot = await cropsRef.get();
-
-  const matchingDoc = snapshot.docs.find(doc => {
-      const imageUrl = doc.data().imageUrl;
-      return imageUrl && imageUrl.includes(fileName);
-  });
-
-
-  if (!matchingDoc) {
-    logger.log("No matching crop document found for this image.", {fileName});
-    return null;
-  }
-
-  logger.log(`Found matching document: ${matchingDoc.id}. Updating with analysis.`);
-  return matchingDoc.ref.update({
-    qualityAnalysis: {
-      score: qualityScore,
-      status: qualityScore > 90 ? "Excellent" : "Good",
-      defect: randomDefect,
-      suggestion: suggestion,
-      analyzedAt: admin.firestore.FieldValue.serverTimestamp(),
+  // 3. Construct the notification message
+  const payload = {
+    notification: {
+      title: `New message from ${senderName}`,
+      body: messageText,
+      click_action: "FLUTTER_NOTIFICATION_CLICK", // Important for Flutter
     },
-  });
+    token: fcmToken,
+  };
+
+  // 4. Send the notification
+  try {
+    logger.log(`Sending notification to token: ${fcmToken}`);
+    await admin.messaging().send(payload);
+    logger.log("Notification sent successfully!");
+  } catch (error) {
+    logger.error("Error sending notification:", error);
+  }
+
+  return null;
 });

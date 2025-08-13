@@ -1,8 +1,11 @@
+// lib/screens/splash_screen.dart
+
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_screen.dart';
 import 'onboarding_screen.dart';
+import '../services/notification_service.dart'; // Import the service
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,15 +18,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
+    _initializeApp();
+  }
+
+  Future<void> _initializeApp() async {
+    // --- Initialize notifications here ---
+    await NotificationService().initNotifications(context);
     _checkAuthStatus();
   }
 
   _checkAuthStatus() {
-    // Listen to authentication state changes
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (mounted) {
         if (user == null) {
-          // If user is not logged in, go to onboarding
           Timer(const Duration(seconds: 2), () {
             Navigator.pushReplacement(
               context,
@@ -31,7 +38,6 @@ class _SplashScreenState extends State<SplashScreen> {
             );
           });
         } else {
-          // If user is logged in, go to home screen
           Timer(const Duration(seconds: 2), () {
             Navigator.pushReplacement(
               context,
@@ -51,13 +57,12 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Assuming you have a logo in assets/images/bharath_link_logo.png
             Image.asset(
-              'assets/images/bharath_link_logo.png', // Replace with your logo path
+              'assets/images/bharath_link_logo.png',
               height: 120,
               width: 120,
               errorBuilder: (context, error, stackTrace) =>
-              const Icon(Icons.link, size: 120, color: Colors.lightGreen), // Fallback icon
+              const Icon(Icons.link, size: 120, color: Colors.lightGreen),
             ),
             const SizedBox(height: 20),
             Text(

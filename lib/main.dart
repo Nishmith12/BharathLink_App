@@ -1,13 +1,20 @@
+// lib/main.dart
+
 import 'package:flutter/material.dart';
 import 'package:bharathlink_full_demo/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'services/notification_service.dart'; // Import the new service
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // --- NEW: Initialize the notification service ---
+  await NotificationService().initNotifications();
+
   runApp(const BharathLinkApp());
 }
 
@@ -20,7 +27,7 @@ class BharathLinkApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'BharathLink Demo',
       theme: ThemeData(
-        primarySwatch: Colors.lightGreen, // A pleasant primary color
+        primarySwatch: Colors.lightGreen,
         visualDensity: VisualDensity.adaptivePlatformDensity,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.lightGreen,
@@ -51,14 +58,14 @@ class BharathLinkApp extends StatelessWidget {
           labelStyle: const TextStyle(color: Colors.lightGreen),
           floatingLabelStyle: const TextStyle(color: Colors.lightGreen),
         ),
-        cardTheme: const CardThemeData( // Using CardThemeData
+        cardTheme: const CardThemeData(
           elevation: 8,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.all(Radius.circular(15.0)),
           ),
         ),
       ),
-      home: const SplashScreen(), // Start with the Splash Screen
+      home: const SplashScreen(),
     );
   }
 }
