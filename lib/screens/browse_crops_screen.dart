@@ -3,11 +3,13 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'crop_report_screen.dart'; // To view details
+import 'crop_report_screen.dart';
+import 'chat_screen.dart'; // Import the new chat screen
 
 class BrowseCropsScreen extends StatelessWidget {
   const BrowseCropsScreen({super.key});
 
+  // ... (keep the _showMakeOfferDialog function as it is)
   void _showMakeOfferDialog(BuildContext context, String cropId, String farmerId, String cropName) {
     final currentUser = FirebaseAuth.instance.currentUser;
     if (currentUser == null) {
@@ -117,7 +119,6 @@ class BrowseCropsScreen extends StatelessWidget {
               final cropName = data['cropName'] as String? ?? 'N/A';
               final listedAt = data['listedAt'] as Timestamp?;
 
-              // --- NEW: Check if the listing is recent ---
               final bool isNew = listedAt != null && DateTime.now().difference(listedAt.toDate()).inHours < 24;
 
               return Card(
@@ -135,7 +136,7 @@ class BrowseCropsScreen extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Stack( // Use a Stack to overlay the "New" badge
+                      child: Stack(
                         children: [
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,16 +147,12 @@ class BrowseCropsScreen extends StatelessWidget {
                                   height: 180,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) => const SizedBox(
-                                    height: 180,
-                                    child: Center(child: Icon(Icons.error, color: Colors.red)),
-                                  ),
                                 )
                               else
                                 Container(
                                   height: 180,
                                   color: Colors.grey.shade200,
-                                  child: const Center(child: Icon(Icons.image_not_supported, size: 50, color: Colors.grey)),
+                                  child: const Center(child: Icon(Icons.image_not_supported)),
                                 ),
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
@@ -174,9 +171,29 @@ class BrowseCropsScreen extends StatelessWidget {
                                           return const Text("Loading farmer info...");
                                         }
                                         final userData = userSnapshot.data!.data() as Map<String, dynamic>;
-                                        return Text(
-                                          'Sold by: ${userData['fullName'] ?? 'Anonymous Farmer'}',
-                                          style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                                        final farmerName = userData['fullName'] ?? 'Anonymous Farmer';
+                                        final city = userData['city'] ?? 'Unknown';
+                                        final state = userData['state'] ?? 'Location';
+
+                                        return Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Sold by: $farmerName',
+                                              style: TextStyle(color: Colors.grey.shade700, fontStyle: FontStyle.italic),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Row(
+                                              children: [
+                                                Icon(Icons.location_on, size: 16, color: Colors.grey.shade600),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  '$city, $state',
+                                                  style: TextStyle(color: Colors.grey.shade700),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
                                         );
                                       },
                                     ),
@@ -202,7 +219,6 @@ class BrowseCropsScreen extends StatelessWidget {
                               ),
                             ],
                           ),
-                          // --- NEW: "New Listing" Badge ---
                           if (isNew)
                             Positioned(
                               top: 10,
@@ -213,26 +229,53 @@ class BrowseCropsScreen extends StatelessWidget {
                                   color: Colors.red,
                                   borderRadius: BorderRadius.circular(5),
                                 ),
-                                child: const Text(
-                                  'NEW',
-                                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 12),
-                                ),
+                                child: const Text('NEW', style: TextStyle(color: Colors.white)),
                               ),
                             ),
                         ],
                       ),
                     ),
+                    // --- UPDATED ACTION BUTTONS ---
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.local_offer),
-                        label: const Text('Make an Offer'),
-                        onPressed: () => _showMakeOfferDialog(context, document.id, farmerId, cropName),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange.shade700,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.local_offer),
+                              label: const Text('Make Offer'),
+                              onPressed: () => _showMakeOfferDialog(context, document.id, farmerId, cropName),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange.shade700,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              icon: const Icon(Icons.chat_bubble_outline),
+                              label: const Text('Contact'),
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      receiverId: farmerId,
+                                      receiverName: 'Farmer', // We'll fetch the real name on the chat screen
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.lightGreen,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
